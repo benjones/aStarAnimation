@@ -23,7 +23,11 @@ const cellHeight = canvasHeight/gridSize;
 
 let start = {row: 0, col : 0};
 let target = {row: gridSize -1, col: gridSize -1};
-let grid = initGrid(gridSize);
+let walls = new Set();
+
+initGrid(gridSize);
+
+
 
 let animate = true;
 
@@ -43,7 +47,7 @@ document.getElementById('animate').addEventListener('click', async (event) => {
 });
 
 
-function drawGrid(grid){
+function drawGrid(){
     ctx.clearRect(0,0, canvasWidth, canvasHeight);
 
 
@@ -53,44 +57,47 @@ function drawGrid(grid){
         for(let col = 0; col < gridSize; col++){
 
             ctx.strokeRect(col*cellWidth, row*cellHeight, cellWidth, cellHeight)
-            if(grid[row][col] == 's'){
-                ctx.fillStyle = 'green';
-                ctx.fillRect(col*cellWidth, row*cellHeight, cellWidth, cellHeight);
-            }
-            if(grid[row][col] == 't'){
-                ctx.fillStyle = 'red';
-                ctx.fillRect(col*cellWidth, row*cellHeight, cellWidth, cellHeight);
-            }
-            
         }
     }
+    
+    ctx.fillStyle = 'green';
+    ctx.fillRect(start.col*cellWidth, start.row*cellHeight, cellWidth, cellHeight);
+
+    ctx.fillStyle = 'red';
+    ctx.fillRect(target.col*cellWidth, target.row*cellHeight, cellWidth, cellHeight);
+
+    ctx.fillStyle = 'black';
+    for(let wallString of walls){
+        let wall = stringToNode(wallString);
+        ctx.fillRect(wall.col*cellWidth, wall.row*cellHeight, cellWidth, cellHeight);
+    }
+    
 }
 
             
 function initGrid(size){
-    let grid = Array(size).fill().map(() => Array(size).fill(' '));
     start = {row:0, col: 0};
     target = {row: gridSize -1, col: gridSize -1};
-    grid[start.row][start.col] = 's';
-    grid[target.row][target.col] = 't';
-    drawGrid(grid);
-    return grid;
+    drawGrid();
+    walls = new Set();
 }
 
 canvas.addEventListener('click', (event)=>{
     animate = false;
     if(currentMode == modes.setStart){
-        grid[start.row][start.col] = ' ';
         start = getCell(event, cellWidth, cellHeight);
-        grid[start.row][start.col] = 's';
-        drawGrid(grid);
     } else if(currentMode == modes.setEnd){
-        grid[target.row][target.col] = ' ';
         target = getCell(event, cellWidth, cellHeight);
-        grid[target.row][target.col] = 't';
-        drawGrid(grid);
 
+    } else { //add walls
+        let wallString = nodeToString(getCell(event, cellWidth, cellHeight));
+        if(event.shiftKey){
+            walls.delete(wallString);
+        } else {
+            walls.add(wallString);
+        }
     }
+    drawGrid();
 
 });
 
@@ -297,6 +304,8 @@ function aStar(){
             }
             
             let neighborString = nodeToString(neighbor);
+
+            if(walls.has(neighborString)){ continue; }
             //console.log("examining neighbor: " + neighborString);
             
             if(!nodeData.has(neighborString)){
