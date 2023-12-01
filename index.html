@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>A Star Demo</title>
+
+    <style>
+      #controls {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-around;
+          width: 600px;
+      }
+
+      .selectedMode {
+          font-weight: bold;
+      }
+      
+    </style>
+  </head>
+  
+  <body>
+    
+    <canvas id="canvas" height="600" width="600" ></canvas>
+
+    <div id="controls">
+      <p>size</p>
+      <p id="sizeField" contenteditable="true">20</p>
+      <p id="setStart">Set Start</p>
+      <p id="setEnd">Set End</p>
+      <p id="addWalls">Add Walls</p>
+      <p id="animate">Animate</p>
+    </div>
+    
+    <script type="module" src="./script.js"></script>
+      
+  </body>
+</html>
