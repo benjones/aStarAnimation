@@ -17,8 +17,9 @@ let currentMode = modes.setStart;
 setMode();
 
 let gridSize = parseInt(document.getElementById("sizeField").innerText);
-const cellWidth = canvasWidth/gridSize;
-const cellHeight = canvasHeight/gridSize;
+
+function cellWidth(){return canvasWidth/gridSize; }
+function cellHeight(){return canvasHeight/gridSize; }
 
 
 let start = {row: 0, col : 0};
@@ -35,6 +36,12 @@ for(let field of Object.keys(modes)){
     document.getElementById(field).addEventListener('click', (event) => {
         console.log(event);
         currentMode = event.target.id;
+        let newGridSize = parseInt(document.getElementById("sizeField").innerText);
+        if(newGridSize != gridSize){
+            gridSize = newGridSize;
+            console.log("current grid size:", gridSize);
+            initGrid(gridSize);
+        }
         setMode();
     });
 }
@@ -56,20 +63,20 @@ function drawGrid(){
     for(let row = 0; row < gridSize; row++){
         for(let col = 0; col < gridSize; col++){
 
-            ctx.strokeRect(col*cellWidth, row*cellHeight, cellWidth, cellHeight)
+            ctx.strokeRect(col*cellWidth(), row*cellHeight(), cellWidth(), cellHeight())
         }
     }
     
     ctx.fillStyle = 'green';
-    ctx.fillRect(start.col*cellWidth, start.row*cellHeight, cellWidth, cellHeight);
+    ctx.fillRect(start.col*cellWidth(), start.row*cellHeight(), cellWidth(), cellHeight());
 
     ctx.fillStyle = 'red';
-    ctx.fillRect(target.col*cellWidth, target.row*cellHeight, cellWidth, cellHeight);
+    ctx.fillRect(target.col*cellWidth(), target.row*cellHeight(), cellWidth(), cellHeight());
 
     ctx.fillStyle = 'black';
     for(let wallString of walls){
         let wall = stringToNode(wallString);
-        ctx.fillRect(wall.col*cellWidth, wall.row*cellHeight, cellWidth, cellHeight);
+        ctx.fillRect(wall.col*cellWidth(), wall.row*cellHeight(), cellWidth(), cellHeight());
     }
     
 }
@@ -85,12 +92,12 @@ function initGrid(size){
 canvas.addEventListener('click', (event)=>{
     animate = false;
     if(currentMode == modes.setStart){
-        start = getCell(event, cellWidth, cellHeight);
+        start = getCell(event, cellWidth(), cellHeight());
     } else if(currentMode == modes.setEnd){
-        target = getCell(event, cellWidth, cellHeight);
+        target = getCell(event, cellWidth(), cellHeight());
 
     } else { //add walls
-        let wallString = nodeToString(getCell(event, cellWidth, cellHeight));
+        let wallString = nodeToString(getCell(event));
         if(event.shiftKey){
             walls.delete(wallString);
         } else {
@@ -101,7 +108,7 @@ canvas.addEventListener('click', (event)=>{
 
 });
 
-function getCell(event, cellWidth, cellHeight){
+function getCell(event){
     const target = event.target;
 
     // Get the bounding rectangle of target
@@ -111,7 +118,7 @@ function getCell(event, cellWidth, cellHeight){
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    return {row : Math.trunc(y/cellHeight), col : Math.trunc(x/cellWidth)};
+    return {row : Math.trunc(y/cellHeight()), col : Math.trunc(x/cellWidth())};
 }
 
 
@@ -333,21 +340,21 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-let delay = 100;
+let delay = 100*Math.exp(-Math.pow(gridSize/20.0, 4));
 async function animateSearch(result){
     
     for(let cell of result.log){
         if(!animate){ return; }
         if(cell.row == start.row && cell.col == start.col){ continue; }
         ctx.fillStyle = '#333388';
-        ctx.fillRect(cell.col*cellWidth, cell.row*cellHeight, cellWidth, cellHeight);
+        ctx.fillRect(cell.col*cellWidth(), cell.row*cellHeight(), cellWidth(), cellHeight());
         await sleep(delay);
     }
     await sleep(1000);
     for(let cell of result.path){
         if(!animate){ return; }
         ctx.fillStyle = 'blue';
-        ctx.fillRect(cell.col*cellWidth, cell.row*cellHeight, cellWidth, cellHeight);
+        ctx.fillRect(cell.col*cellWidth(), cell.row*cellHeight(), cellWidth(), cellHeight());
         await sleep(delay);
     }
 }
